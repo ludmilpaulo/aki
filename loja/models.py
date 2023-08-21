@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 from datetime import datetime, time, date
 from django.dispatch import receiver
@@ -51,7 +52,7 @@ def criar_token_autenticacao(sender, instance=None, created=False, **kwargs):
 # Modelo para categorias de refeições
 class Categoria(models.Model):
     nome = models.CharField(max_length=200, db_index=True, verbose_name='Nome')
-    slug = models.SlugField(max_length=200, unique=True, verbose_name='Slug')
+    slug = models.SlugField(max_length=200, unique=True, blank=True, verbose_name='Slug')
 
     class Meta:
         ordering = ('nome',)
@@ -180,7 +181,7 @@ class Motorista(models.Model):
     def __str__(self):
         return self.usuario.username
 
-# Modelo para refeições
+
 class Produto(models.Model):
     categoria = models.ForeignKey(Categoria, related_name='refeicoes', on_delete=models.CASCADE, verbose_name='Categoria')
     fornecedor = models.ForeignKey(Fornecedor, on_delete=models.CASCADE, verbose_name='Fornecedor')
@@ -188,7 +189,7 @@ class Produto(models.Model):
     descricao_curta = models.CharField(max_length=500, verbose_name='Descrição Curta')
     imagem = models.ImageField(upload_to='imagens_refeicao/', blank=False, verbose_name='Imagem da Refeição')
     preco = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Preço')
-    slug = models.SlugField(max_length=500, db_index=True, unique=True, verbose_name='Slug')
+    slug = models.SlugField(max_length=500, db_index=True, unique=True, blank=True, verbose_name='Slug')
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado Em')
     modificado_em = models.DateTimeField(auto_now=True, verbose_name='Modificado Em')
     disponivel = models.BooleanField(default=True, verbose_name='Disponível')
@@ -201,6 +202,20 @@ class Produto(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            # Generate a slug from the nome field
+            self.slug = slugify(self.nome)
+            
+            # Ensure the slug is unique
+            orig_slug = self.slug
+            counter = 1
+            while Produto.objects.filter(slug=self.slug).exists():
+                self.slug = '%s-%d' % (orig_slug, counter)
+                counter += 1
+
+        super(Produto, self).save(*args, **kwargs)
 
 class Pedido(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, verbose_name='Cliente')

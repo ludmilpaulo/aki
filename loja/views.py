@@ -12,14 +12,14 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import status
 from django.http import JsonResponse
-
+from rest_framework.generics import ListAPIView
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.authtoken.views import ObtainAuthToken
 
 
-from .models import Fornecedor
-from .serializers import FornecedorSerializer
+from .models import *
+from .serializers import *
 
 @csrf_exempt
 @api_view(['POST'])
@@ -132,6 +132,57 @@ def get_fornecedor_by_usuario(request, usuario_id):
         }).data
 
     return JsonResponse({"fornecedor": serialized_data})
+
+
+
+
+
+class ProdutoListView(ListAPIView):
+    serializer_class = ProdutoSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id', None)  # Get user_id from the request parameters
+        
+        # Get the user object from the user_id
+        user = get_object_or_404(User, id=user_id)
+        
+        return Produto.objects.filter(fornecedor=user.fornecedor).order_by("-id")
+    
+class CategoriaListCreate(generics.ListCreateAPIView):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+
+
+from django.contrib.auth.models import User
+from rest_framework.exceptions import ValidationError
+
+class FornecedorAddProductView(generics.CreateAPIView):
+    serializer_class = ProdutoSerializer
+    queryset = Produto.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id not provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not hasattr(user, 'fornecedor'):
+            return Response({'error': 'User does not have an associated fornecedor'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            product = serializer.save()
+            product.fornecedor = user.fornecedor
+            product.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class FornecedorViewSet(viewsets.ModelViewSet):

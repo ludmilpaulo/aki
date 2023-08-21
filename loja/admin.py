@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import Fornecedor, HorarioFuncionamento
+from .models import Fornecedor, HorarioFuncionamento, Produto, Categoria
+
+@admin.register(Categoria)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
 
 class FornecedorAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'nome_fornecedor', 'aprovado', 'criado_em')
@@ -11,3 +15,10 @@ class HorarioAberturaAdmin(admin.ModelAdmin):
 
 admin.site.register(Fornecedor, FornecedorAdmin)
 admin.site.register(HorarioFuncionamento, HorarioAberturaAdmin)
+
+
+@admin.register(Produto)
+class ProdutoAdmin(admin.ModelAdmin):
+    list_display = ('fornecedor', 'nome', 'preco')
+    list_filter = ('fornecedor', 'nome')
+#    search_fields = ('fornecedor', 'nome')
