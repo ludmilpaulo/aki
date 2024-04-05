@@ -27,7 +27,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'loja',
+    'shop',
+    'account',
+    'order',
       # 3rd-party apps
     'rest_framework',
     'rest_framework.authtoken',
@@ -145,8 +147,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "static_cdn", "media_root")
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-#CORS_ORIGIN_ALLOW_ALL = True
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+CORS_ORIGIN_ALLOW_ALL = True
+#ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 CORS_ALLOW_CREDENTIALS = False
 CORS_ALLOWED_ORIGINS = [
