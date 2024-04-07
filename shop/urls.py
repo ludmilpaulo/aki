@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import FornecedorAddProduct, produto_list_view, update_product, delete_product, CategoriaListCreate, shop_get_products, fornecedor_add_product, ProdutoListView, get_fornecedor, ShopCategoryViewSet, ShopViewSet, get_products_by_shop, get_shops_by_category, GetShopsByCategoryView
+from .views import FornecedorAddProduct, get_all_products, produto_list_view, update_product, delete_product, CategoriaListCreate, shop_get_products, fornecedor_add_product, ProdutoListView, get_fornecedor, ShopCategoryViewSet, ShopViewSet, get_products_by_shop, get_shops_by_category, GetShopsByCategoryView
 
 router = DefaultRouter()
 router.register('shop-categories', ShopCategoryViewSet)
@@ -19,4 +19,5 @@ urlpatterns = [
    # path('get_products/<int:user_id>/', produto_list_view, name='produto-list'),
     path('delete-product/<int:pk>/', delete_product, name='fornecedor-delete-product'),
     path('update-product/<int:pk>/', update_product, name='update-product'),
+    path('get-all-products/', get_all_products, name='get-all-products'),
 ]

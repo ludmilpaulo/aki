@@ -14,7 +14,7 @@ SECRET_KEY = 'django-insecure-zfp4h^p=6srklb1q*_=y8q44+js#0@p!h^q^ekfa8r#-pvcrt-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['taki.pythonanywhere.com']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -50,6 +50,8 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
     ],
 }
+
+AUTH_USER_MODEL="shop.User"
 
 
 MIDDLEWARE = [
