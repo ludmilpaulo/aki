@@ -152,9 +152,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 #ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 CORS_ALLOW_CREDENTIALS = False
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # If you're running your frontend locally
-]
+#CORS_ALLOWED_ORIGINS = [
+#    "http://localhost:3000",  # If you're running your frontend locally
+#]
 
 SERVER_EMAIL = 'contact@ludmilpaulo.com' # this is for to send 500 mail to admins
 
