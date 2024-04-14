@@ -1,45 +1,28 @@
-import json
-from django.utils import timezone
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
-from django.db import IntegrityError
 
 
 
-from rest_framework import status, generics, permissions, viewsets
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import *
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
 from rest_framework.generics import ListAPIView
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 
 
-from django.contrib.auth import authenticate
 #from django.contrib.auth.models import User
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.views import APIView
 from rest_framework.parsers import *
-from rest_framework import serializers
 
 
 from .models import *
-from .serializers import OrderDetailsSerializer, OrderSerializer
+from .serializers import OrderSerializer
 
 
 
 
 
 
-from django.core.exceptions import ObjectDoesNotExist
 
-from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -198,4 +181,42 @@ class OrderListView(ListAPIView):
 
         return Order.objects.filter(shop=user.shop).order_by("-id")
 
-# views.py
+
+
+
+
+# GET params: access_token
+@api_view(["POST"])
+def customer_get_order_history(request):
+    data = request.data
+    access = Token.objects.get(key=data['access_token']).user
+
+    # Get profile
+
+    customer = Customer.objects.get(user=access)
+    order_history = OrderSerializer(Order.objects.filter(
+        customer=customer, status=Order.DELIVERED).order_by("picked_at"),
+                                    many=True,
+                                    context={
+                                        "request": request
+                                    }).data
+
+    return JsonResponse({"order_history": order_history})
+
+
+
+
+
+def shop_order_notification(request, user_id, last_request_time):
+    try:
+        # Retrieve the user based on the user_id
+        user = User.objects.get(id=user_id)
+        # Filter orders for the user's shop and created after the last request time
+        notification = Order.objects.filter(
+            shop=user.shop,
+            created_at__gt=last_request_time,
+            status=Order.COOKING
+        ).count()
+        return JsonResponse({"notification": notification})
+    except User.DoesNotExist:
+        return JsonResponse({"notification": 0}) 

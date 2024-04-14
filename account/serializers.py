@@ -74,18 +74,19 @@ class CustomerSignupSerializer(serializers.ModelSerializer):
 
 
 ###############**********************************************
-
 class CustomerSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = Customer
-        fields = ("id", "avatar", "phone", "address")
+        fields = ("id", "username", "avatar", "phone", "address")
 
 
 class DriverSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = Driver
-        fields = ("id", "avatar", "phone", "address")
+        fields = ("id", "username", "avatar", "phone", "address")
 
 

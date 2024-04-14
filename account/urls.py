@@ -1,12 +1,6 @@
-from django import urls
-from django.conf import settings
-from django.conf.urls.static import static
-from django.conf.urls import include
-from django.contrib import admin
 
 
 from django.urls import path
-from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
@@ -17,5 +11,7 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout-view'),
     path('fornecedor/', views.fornecedor_sign_up),
     path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password'),
+    path('customer/profile/update/', views.customer_update_profile),
+    path('customer/profile/', views.customer_get_detais),
     ##############################################
 ] 

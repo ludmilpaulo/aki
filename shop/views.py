@@ -356,7 +356,10 @@ def get_all_products(request):
     # Apply search filter if search query is provided
     if search_query:
         products = products.filter(Q(title__icontains=search_query))
+        
+    serialized_products = ProductSerializer(products, many=True, context={"request": request}).data
+
 
     # Serialize products and return as JSON response
-    serialized_products = [{'id': product.id, 'title': product.title, 'price': product.price, 'image_urls': [str(image) for image in product.images.all()]} for product in products]
+   # serialized_products = [{'id': product.id, 'title': product.title, 'price': product.price, 'image_urls': [str(image) for image in product.images.all()]} for product in products]
     return JsonResponse(serialized_products, safe=False)

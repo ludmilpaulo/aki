@@ -1,21 +1,12 @@
-import json
-from django.utils import timezone
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
-from django.db import IntegrityError
 
 from shop.permissions import *
 
-from rest_framework import status, generics, permissions, viewsets
+from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import *
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
-from rest_framework.generics import ListAPIView
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 
 
 from django.contrib.auth import authenticate
@@ -23,7 +14,6 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
 from rest_framework.parsers import *
-from rest_framework import serializers
 
 
 from shop.models import *
@@ -33,7 +23,6 @@ from .serializers import *
 
 
 
-from django.core.exceptions import ObjectDoesNotExist
 
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode
@@ -65,6 +54,8 @@ class DriverSignupView(generics.GenericAPIView):
 
 
 
+
+
 class CustomerSignupView(generics.CreateAPIView):
     serializer_class = CustomerSignupSerializer
 
@@ -75,10 +66,13 @@ class CustomerSignupView(generics.CreateAPIView):
         # Call save method to create user and customer
         user = serializer.save()
 
+        # Check if the user already has a token
+        token, created = Token.objects.get_or_create(user=user)
+
         # Construct response data
         data = {
             "user_id": user.pk,
-            "token": Token.objects.get(user=user).key,
+            "token": token.key,
             "message": "Conta criada com sucesso",
             "username": user.username,
             "status": status.HTTP_201_CREATED,
@@ -86,6 +80,7 @@ class CustomerSignupView(generics.CreateAPIView):
         }
 
         return Response(data, status=status.HTTP_201_CREATED)
+
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -242,4 +237,15 @@ def fornecedor_sign_up(request, format=None):
                 return Response({"error": "Falha na autenticação."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def customer_get_detais(request):
+    data = request.data
+
+    customer_detais = CustomerSerializer(
+         Customer.objects.get(user_id=data['user_id'])).data
+     
+
+    return JsonResponse({"customer_detais": customer_detais})
 

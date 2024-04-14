@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import User, ShopCategory, Shop, Product, ProductCategory, Image
+from .models import User, ShopCategory, Shop, Product, ProductCategory, Image, Customer, Driver
+
+
+@admin.register(Driver)
+class DriverAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    pass
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
