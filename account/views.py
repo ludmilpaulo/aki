@@ -19,7 +19,7 @@ from rest_framework.parsers import *
 from shop.models import *
 from shop.serializers import ShopSerializer
 from .serializers import *
-
+from django.conf import settings
 
 
 
@@ -30,6 +30,7 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 
 from django.contrib.auth import get_user_model
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 User = get_user_model()
 
 
@@ -144,6 +145,7 @@ def customer_update_profile(request, format=None):
     return JsonResponse({"status": "Os Seus Dados enviados com sucesso"})
 
 
+
 class ForgotPasswordView(APIView):
     def post(self, request):
         email = request.data.get('email')
@@ -152,12 +154,12 @@ class ForgotPasswordView(APIView):
         if user:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            reset_link = f'http://localhost:3000/reset-password/{uid}/{token}/'
+            reset_link = f'https://taki.pythonanywhere.com/reset-password/{uid}/{token}/'
 
             send_mail(
                 'Reset your password',
                 f'Click the following link to reset your password: {reset_link}',
-                'from@example.com',
+                settings.DEFAULT_FROM_EMAIL,  # Use settings.DEFAULT_FROM_EMAIL here
                 [email],
                 fail_silently=False,
             )
@@ -165,7 +167,6 @@ class ForgotPasswordView(APIView):
             return Response({'message': 'Password reset link sent successfully'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'User with this email does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        
 
 
 @api_view(['POST'])

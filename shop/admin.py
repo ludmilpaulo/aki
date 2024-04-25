@@ -1,7 +1,10 @@
 from django.contrib import admin
-from .models import User, ShopCategory, Shop, Product, ProductCategory, Image, Customer, Driver
+from .models import User, ShopCategory, Shop, Product, ProductCategory, Image, Customer, Driver, Service
 
 
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    pass
 @admin.register(Driver)
 class DriverAdmin(admin.ModelAdmin):
     pass

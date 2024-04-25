@@ -1,7 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import time, date, datetime
 
 from django.db.models.signals import post_save
 from django.conf import settings
@@ -12,19 +10,47 @@ from django.core.mail import send_mail
 
 
 ##########################################################################
-from django.contrib import messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import EmailMessage, message
+from django.core.mail import EmailMessage
 
 
 ####################################################################################
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db import models
+
+
+
+
+def send_verification_email(request, user, mail_subject, email_template):
+    from_email = settings.DEFAULT_FROM_EMAIL
+    current_site = get_current_site(request)
+    message = render_to_string(email_template, {
+        'user': user,
+        'domain': current_site,
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': default_token_generator.make_token(user),
+    })
+    to_email = user.email
+    mail = EmailMessage(mail_subject, message, from_email, to=[to_email])
+    mail.content_subtype = "html"
+    mail.send()
+
+
+def send_notification(mail_subject, mail_template, context):
+    from_email = settings.DEFAULT_FROM_EMAIL
+    message = render_to_string(mail_template, context)
+    if(isinstance(context['to_email'], str)):
+        to_email = []
+        to_email.append(context['to_email'])
+    else:
+        to_email = context['to_email']
+    mail = EmailMessage(mail_subject, message, from_email, to=to_email)
+    mail.content_subtype = "html"
+    mail.send()
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -133,7 +159,6 @@ class ProductCategory(models.Model):
 
     # Other fields and methods as needed...
 
-    
 class Shop(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='usuário', blank=True)
     shop_category = models.ForeignKey(ShopCategory, related_name='shops', on_delete=models.CASCADE, null=True)
@@ -147,6 +172,9 @@ class Shop(models.Model):
 
     def __str__(self):
         return self.name 
+
+  
+
 
 
 class Image(models.Model):
@@ -172,8 +200,41 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title   
-  
 
+class ServiceCategory(models.Model):
+    name = models.CharField(max_length=200, db_index=True)
+    image = models.ImageField(upload_to='category/', blank=True)
+    slug = models.SlugField(max_length=200, blank=True,
+                            unique=True)
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Service category'
+        verbose_name_plural = 'Service categories'
+    def __str__(self):
+        return self.name
+    
+    
+    
+class ServiceImage(models.Model):
+    image = models.ImageField(max_length=3000, default=None, blank=True, upload_to='product_images/')
+    
+    def __str__(self):
+        return self.image.name
+class Service(models.Model):
+    category = models.ForeignKey(ServiceCategory, related_name='service', on_delete=models.CASCADE, null=True)
+    title = models.CharField(max_length=200)
+    images = models.ManyToManyField(ServiceImage)  # Many-to-many relationship with Image model
+    rating = models.IntegerField(default=0)
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    description = models.TextField()
+   
+
+    class Meta:
+        verbose_name = 'Service'
+        verbose_name_plural = 'Service'
+
+    def __str__(self):
+        return self.title   
 
 
 

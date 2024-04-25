@@ -19,8 +19,8 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-from .models import Image, ProductCategory, ShopCategory, Shop, Product
-from .serializers import ProductCategorySerializer, ShopCategorySerializer, ShopSerializer, ProductSerializer
+from .models import Image, ProductCategory, ServiceCategory, ServiceImage, ShopCategory, Shop, Product, Service
+from .serializers import ProductCategorySerializer, ServiceCategorySerializer, ServiceSerializer, ShopCategorySerializer, ShopSerializer, ProductSerializer
 
 class ShopCategoryViewSet(viewsets.ModelViewSet):
     queryset = ShopCategory.objects.all()
@@ -132,7 +132,6 @@ class ProdutoListView(ListAPIView):
         return Product.objects.filter(shop=user.shop).order_by("-id")
 
 
-from django.core.exceptions import ValidationError
 
 @api_view(["GET"])
 def produto_list_view(request, user_id):
@@ -232,8 +231,6 @@ def update_product(request, pk):
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from io import BytesIO
 
 @api_view(["POST"])
 @parser_classes([MultiPartParser])
@@ -363,3 +360,116 @@ def get_all_products(request):
     # Serialize products and return as JSON response
    # serialized_products = [{'id': product.id, 'title': product.title, 'price': product.price, 'image_urls': [str(image) for image in product.images.all()]} for product in products]
     return JsonResponse(serialized_products, safe=False)
+
+
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser])
+def fornecedor_add_service(request, format=None):
+    data = request.data
+    img = [file for key, file in data.items() if key.startswith('images[')]
+
+    print("Received data:", data)  # Print the received data for debugging
+    print("Received images:", img)  # Print the received data for debugging
+
+    try:
+        # Retrieve the user associated with the access token
+        access = Token.objects.get(key=data['access_token']).user
+
+        # Retrieve the shop associated with the user
+        shop = access.shop
+
+        # Retrieve or create the category based on the slug
+        category_slug = data.get('category')
+        if category_slug:
+            try:
+                category = ServiceCategory.objects.get(slug=category_slug)
+            except ServiceCategory.DoesNotExist:
+                category = ServiceCategory.objects.create(slug=category_slug, name=category_slug)
+        else:
+            return Response({'error': 'Category is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create a Product instance and associate it with the category, shop, and other fields
+        service = Service.objects.create(
+            category=category,
+            title=data['title'],
+            shop=shop,
+            description=data['description']
+        )
+
+        # Save uploaded images and associate them with the product
+        images = []
+        for file_field in img:
+            # Create an Image instance and save it to the database
+            image = ServiceImage.objects.create(image=file_field)
+            images.append(image)
+
+        # Associate the images with the product
+        service.images.set(images)
+
+        return Response({"status": "Product added successfully"}, status=status.HTTP_201_CREATED)
+
+    except Token.DoesNotExist:
+        return Response({'error': 'Invalid access token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+#####################################################################################################
+
+def shop_get_service(request):
+    access_token = request.GET.get('access_token')
+
+    if access_token:
+        try:
+            # Retrieve the user associated with the access token
+            user = Token.objects.get(key=access_token).user
+
+            # Retrieve the shop associated with the user
+            shop = user.shop
+
+            # Retrieve products associated with the shop
+            service = Service.objects.filter(shop=shop)
+
+            # Serialize the products
+            serialized_service = ServiceSerializer(service, many=True, context={"request": request}).data
+
+            return JsonResponse({"service": serialized_service})
+        except Token.DoesNotExist:
+            return JsonResponse({"error": "Invalid access token"}, status=400)
+        except AttributeError:
+            return JsonResponse({"error": "User or shop not found"}, status=404)
+    else:
+        return JsonResponse({"error": "Access token is required"}, status=400)
+
+
+
+class ServiceListCreate(generics.ListCreateAPIView):
+    queryset = ServiceCategory.objects.all()
+    serializer_class = ServiceCategorySerializer
+
+
+@api_view(['DELETE'])
+def delete_service(request, pk):
+    try:
+        # Authenticate the user using the user_id from the request
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id not provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(pk=user_id)
+
+        # Check if the user has permission to delete the product
+        service = Service.objects.get(pk=pk)
+        if not hasattr(user, 'shop') or user.shop != service.shop:
+            return Response({'error': 'User does not have permission to delete this product'}, status=status.HTTP_403_FORBIDDEN)
+
+        # User is authenticated and has permission, delete the product
+        service.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Service.DoesNotExist:
+        return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
