@@ -227,14 +227,35 @@ class Service(models.Model):
     rating = models.IntegerField(default=0)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     description = models.TextField()
-   
+
 
     class Meta:
         verbose_name = 'Service'
         verbose_name_plural = 'Service'
 
     def __str__(self):
-        return self.title   
+        return self.title
+    
+    
+    
+
+
+class ServiceRequest(models.Model):
+    service = models.ForeignKey(Service, related_name='requests', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    phone = models.CharField(max_length=20)
+    address = models.CharField(max_length=255)
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Service Request'
+        verbose_name_plural = 'Service Requests'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.service.title}"
+
 
 
 

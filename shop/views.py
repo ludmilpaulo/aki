@@ -19,8 +19,9 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-from .models import Image, ProductCategory, ServiceCategory, ServiceImage, ShopCategory, Shop, Product, Service
-from .serializers import ProductCategorySerializer, ServiceCategorySerializer, ServiceSerializer, ShopCategorySerializer, ShopSerializer, ProductSerializer
+from .models import Image, ProductCategory, ServiceCategory, ServiceImage, ServiceRequest, ShopCategory, Shop, Product, Service
+from .serializers import ProductCategorySerializer, ServiceCategorySerializer, ServiceSerializer, ShopCategorySerializer, ShopSerializer, ProductSerializer, ServiceSerializer, ServiceRequestSerializer
+
 
 class ShopCategoryViewSet(viewsets.ModelViewSet):
     queryset = ShopCategory.objects.all()
@@ -141,7 +142,7 @@ def produto_list_view(request, user_id):
     return Response(serializer.data)
 
 
-    
+
 
 def shop_get_products(request):
     access_token = request.GET.get('access_token')
@@ -473,3 +474,17 @@ def delete_service(request, pk):
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Service.DoesNotExist:
         return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    
+    
+class ServiceListAPIView(generics.ListAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+class ServiceDetailAPIView(generics.RetrieveAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+class ServiceRequestCreateAPIView(generics.CreateAPIView):
+    queryset = ServiceRequest.objects.all()
+    serializer_class = ServiceRequestSerializer

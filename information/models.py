@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.urls import reverse
 import re
-from ckeditor.fields import RichTextField
+
 from django_ckeditor_5.fields import CKEditor5Field
 
 class Image(models.Model):
@@ -84,18 +84,15 @@ class Team(models.Model):
 
 class Contact(models.Model):
     subject = models.CharField(max_length=50)
-    from_email = models.EmailField()
-    phone = models.CharField(max_length=9)
+    email = models.EmailField()
+    phone = models.CharField(max_length=50)
     message = models.TextField(verbose_name='Conteúdo')
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        ordering = ['-timestamp'] # most recent saved show up first
+        ordering = ['-timestamp']
         verbose_name = 'Client contact'
         verbose_name_plural = 'Client contacts'
 
-
     def __str__(self):
         return self.subject
-
-

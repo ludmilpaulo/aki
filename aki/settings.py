@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'order',
     'report',
     'information',
+    'careers',
     'django_ckeditor_5',
 
     'rest_framework',

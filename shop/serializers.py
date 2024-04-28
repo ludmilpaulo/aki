@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductCategory, ServiceCategory, ShopCategory, Shop, Service
+from .models import Product, ProductCategory, ServiceCategory, ServiceRequest, ShopCategory, Shop, Service
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -67,3 +67,9 @@ class ServiceCategorySerializer(serializers.ModelSerializer):
         model = ServiceCategory
         fields = '__all__'
 
+
+
+class ServiceRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceRequest
+        fields = '__all__'

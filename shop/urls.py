@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ServiceListCreate, delete_service, fornecedor_add_service, get_all_products, shop_get_service, update_product, delete_product, CategoriaListCreate, shop_get_products, fornecedor_add_product, ProdutoListView, get_fornecedor, ShopCategoryViewSet, ShopViewSet, get_products_by_shop, get_shops_by_category, GetShopsByCategoryView
+from .views import ServiceListCreate, delete_service, fornecedor_add_service, get_all_products, shop_get_service, update_product, delete_product, CategoriaListCreate, shop_get_products, fornecedor_add_product, ProdutoListView, get_fornecedor, ShopCategoryViewSet, ShopViewSet, get_products_by_shop, get_shops_by_category, GetShopsByCategoryView, ServiceListAPIView, ServiceDetailAPIView, ServiceRequestCreateAPIView
 
 router = DefaultRouter()
 router.register('shop-categories', ShopCategoryViewSet)
@@ -23,4 +23,9 @@ urlpatterns = [
     path('get_services/', shop_get_service, name='get-all-services'),
     path('delete-service/<int:pk>/', delete_service, name='fornecedor-delete-service'),
     path('services_categorias/', ServiceListCreate.as_view(), name='categoria-list-create'),
+    
+    path('services/', ServiceListAPIView.as_view(), name='service-list'),
+    path('services/<int:pk>/', ServiceDetailAPIView.as_view(), name='service-detail'),
+    path('service-requests/', ServiceRequestCreateAPIView.as_view(), name='service-request-create'),
+ 
 ]
